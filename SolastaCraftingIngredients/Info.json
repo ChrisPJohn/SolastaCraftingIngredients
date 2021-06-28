@@ -1,0 +1,13 @@
+{
+	"Id": "SolastaCraftingIngredients",
+	"DisplayName": "SolastaCraftingIngredients",
+	"Author": "ChrisPJohn",
+	"Version": "0.0.1",
+	"ManagerVersion": "0.23.4",
+	"Requirements": [ "SolastaModApi" ],
+	"LoadAfter": [ "SolastaModApi" ],
+	"AssemblyName": "SolastaCraftingIngredients.dll",
+	"EntryMethod": "SolastaCraftingIngredients.Main.Load",
+	"Repository": "https://raw.githubusercontent.com/ChrisPJohn/SolastaCraftingIngredients/main/SolastaCraftingIngredients/Repository.json",
+	"HomePage": "https://www.nexusmods.com/solastacrownofthemagister/mods/##"
+}
