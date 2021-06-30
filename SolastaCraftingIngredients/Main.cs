@@ -6,12 +6,16 @@ using UnityModManagerNet;
 using SolastaModApi;
 using ModKit;
 using ModKit.Utility;
+using SolastaModApi.Extensions;
+using System.Collections.Generic;
 
 namespace SolastaCraftingIngredients
 {
     public static class Main
     {
         public static readonly string MOD_FOLDER = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        public static Guid ModGuidNamespace = new Guid("80a5106e-5cb7-4fdd-8f96-b94f3aafd4dd");
 
         [Conditional("DEBUG")]
         internal static void Log(string msg) => Logger.Log(msg);
@@ -63,22 +67,58 @@ namespace SolastaCraftingIngredients
 
         internal static void OnGameReady()
         {
-            // example: use the ModApi to get a skeleton blueprint
-            //
-            var skeleton = DatabaseHelper.MonsterDefinitions.Skeleton;
+            Dictionary<ItemDefinition, ItemDefinition> EnchantedToIngredient = new Dictionary<ItemDefinition, ItemDefinition>()
+            {
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_MithralStone, DatabaseHelper.ItemDefinitions._300_GP_Opal },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Crystal_Of_Winter, DatabaseHelper.ItemDefinitions._100_GP_Pearl },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Blood_Gem, DatabaseHelper.ItemDefinitions._500_GP_Ruby },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Soul_Gem, DatabaseHelper.ItemDefinitions._1000_GP_Diamond},
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Slavestone, DatabaseHelper.ItemDefinitions._100_GP_Emerald },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Cloud_Diamond, DatabaseHelper.ItemDefinitions._1000_GP_Diamond },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Stardust, DatabaseHelper.ItemDefinitions._100_GP_Pearl },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Doom_Gem, DatabaseHelper.ItemDefinitions._50_GP_Sapphire },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Shard_Of_Fire, DatabaseHelper.ItemDefinitions._500_GP_Ruby },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Shard_Of_Ice, DatabaseHelper.ItemDefinitions._50_GP_Sapphire },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_LifeStone, DatabaseHelper.ItemDefinitions._1000_GP_Diamond },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Diamond_Of_Elai, DatabaseHelper.ItemDefinitions._100_GP_Emerald },
+                {DatabaseHelper.ItemDefinitions.Ingredient_PrimordialLavaStones, DatabaseHelper.ItemDefinitions._20_GP_Amethyst },
+                //{DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Blood_Of_Solasta, DatabaseHelper.ItemDefinitions._20_GP_Amethyst },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Medusa_Coral, DatabaseHelper.ItemDefinitions._300_GP_Opal },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_PurpleAmber, DatabaseHelper.ItemDefinitions._50_GP_Sapphire },
+                {DatabaseHelper.ItemDefinitions.Ingredient_Enchant_Heartstone, DatabaseHelper.ItemDefinitions._300_GP_Opal },
+            };
+            List<RecipeDefinition> recipes = new List<RecipeDefinition>();
+            foreach (ItemDefinition item in EnchantedToIngredient.Keys)
+            {
 
-            // example: how to add TEXTS to the game right
-            //
-            // . almost every game blueprint has a GuiPresentation attribute
-            // . GuiPresentation has a Title and a Description
-            // . Create an entry in Translations-en.txt for those (tab separated)
-            // . Refer to those entries when assigning values to these attributes
-            //
-            // . DON'T FORGET TO CLEAN UP THIS EXAMPLE AND Translations-en.txt file
-            // . ugly things will happen if you don't
-            //
-            skeleton.GuiPresentation.Title = "SolastaCraftingIngredients/&FancySkeletonTitle";
-            skeleton.GuiPresentation.Description = "SolastaCraftingIngredients/&FancySkeletonDescription";
+                string recipeName = "RecipeEnchanting" + item.Name;
+                RecipeBuilder builder = new RecipeBuilder(recipeName, GuidHelper.Create(Main.ModGuidNamespace, recipeName).ToString());
+                builder.AddIngredient(EnchantedToIngredient[item]);
+                builder.SetCraftedItem(item);
+                builder.SetCraftingCheckData(36, 16, DatabaseHelper.ToolTypeDefinitions.EnchantingToolType);
+                recipes.Add(builder.AddToDB());
+            }
+
+            foreach (RecipeDefinition recipe in recipes)
+            {
+                ItemDefinition craftintgManual = ItemBuilder.BuilderCopyFromItemSetRecipe(recipe, DatabaseHelper.ItemDefinitions.CraftingManualRemedy,
+                    "CraftingManual_" + recipe.Name, DatabaseHelper.ItemDefinitions.CraftingManualRemedy.GuiPresentation, 100);
+                StockItem(DatabaseHelper.MerchantDefinitions.Store_Merchant_Antiquarians_Halman_Summer, craftintgManual);
+                StockItem(DatabaseHelper.MerchantDefinitions.Store_Merchant_Gorim_Ironsoot_Cyflen_GeneralStore, craftintgManual);
+            }
+        }
+
+        private static void StockItem(MerchantDefinition merchant, ItemDefinition item)
+        {
+            StockUnitDescription stockUnit = new StockUnitDescription();
+            stockUnit.SetItemDefinition(item);
+            stockUnit.SetInitialAmount(1);
+            stockUnit.SetInitialized(true);
+            stockUnit.SetMaxAmount(2);
+            stockUnit.SetMinAmount(1);
+            stockUnit.SetStackCount(1);
+            stockUnit.SetReassortAmount(1);
+            merchant.StockUnitDescriptions.Add(stockUnit);
         }
     }
 }

@@ -1,2 +1,0 @@
-SolastaCraftingIngredients/&FancySkeletonTitle	Fancy Skeleton
-SolastaCraftingIngredients/&FancySkeletonDescription	I'm a fancy skeleton
